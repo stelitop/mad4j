@@ -37,17 +37,19 @@ dependencies {
 }
 
 publishing {
-	publications {
-		maven(MavenPublication) {
-			groupId = 'stelitop'
-			artifactId = 'mad4j'
-			version = "0.0-1-SNAPSHOT"
-			from components.java
-
-			pom {
-				name = 'Mad4J'
-				description = 'An extension library for Discord4J, utilising method annotations and spring boot.'
+	repositories {
+		maven {
+			name = "mad4j"
+			url = uri("https://maven.pkg.github.com/stelitop/mad4j")
+			credentials {
+				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
 			}
+		}
+	}
+	publications {
+		gpr(MavenPublication) {
+			from(components.java)
 		}
 	}
 }
