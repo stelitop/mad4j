@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Component
 public class CommandOptionAutocompleteListener implements ApplicationRunner {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -31,7 +30,6 @@ public class CommandOptionAutocompleteListener implements ApplicationRunner {
     private final Map<Class<? extends AutocompletionExecutor>, AutocompletionExecutor> autocompletionExecutorBeans;
     private final Map<Pair<String, String>, Class<? extends AutocompletionExecutor>> commandNameParamToExecutor;
 
-    @Autowired
     public CommandOptionAutocompleteListener(
             GatewayDiscordClient client,
             List<AutocompletionExecutor> autocompletionExecutors

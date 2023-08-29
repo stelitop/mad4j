@@ -6,6 +6,7 @@ import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
 import discord4j.rest.RestClient;
+import io.netty.handler.ssl.SslHandshakeCompletionEvent;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
 import stelitop.mad4j.autocomplete.NullAutocompleteExecutor;
@@ -41,19 +42,26 @@ import java.util.stream.Collectors;
  * to false in the application.properties file. This can be used because sometimes discord will
  * "outdate" the commands and require you to wait.</p>
  */
-@Component
 public class SlashCommandRegistrar implements ApplicationRunner {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private GatewayDiscordClient gatewayDiscordClient;
-    @Autowired
-    private CommandOptionAutocompleteListener commandOptionAutocompleteListener;
-    @Autowired
-    private ApplicationContext applicationContext;
-    @Autowired
-    private Environment environment;
+    private final GatewayDiscordClient gatewayDiscordClient;
+    private final CommandOptionAutocompleteListener commandOptionAutocompleteListener;
+    private final ApplicationContext applicationContext;
+    private final Environment environment;
+
+    public SlashCommandRegistrar(
+            GatewayDiscordClient gatewayDiscordClient,
+            CommandOptionAutocompleteListener commandOptionAutocompleteListener,
+            ApplicationContext applicationContext,
+            Environment environment
+    ) {
+        this.gatewayDiscordClient = gatewayDiscordClient;
+        this.commandOptionAutocompleteListener = commandOptionAutocompleteListener;
+        this.applicationContext = applicationContext;
+        this.environment = environment;
+    }
 
     /**
      * <p>Registers all properly annotated slash commands into the discord bot.</p>

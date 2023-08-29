@@ -31,15 +31,20 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Component
 public class ComponentEventListener implements ApplicationRunner {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private GatewayDiscordClient client;
-    @Autowired
-    private ApplicationContext applicationContext;
+    private final GatewayDiscordClient client;
+    private final ApplicationContext applicationContext;
+
+    public ComponentEventListener(
+            GatewayDiscordClient client,
+            ApplicationContext applicationContext
+    ) {
+        this.client = client;
+        this.applicationContext = applicationContext;
+    }
 
     /**
      * Loaded data for the classes that can contain the implementation.
