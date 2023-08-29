@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
  * These requirements are first checked against and if any of them are unfulfilled, the execution
  * is cancelled and an error message is returned instead.</p>
  */
+@Component
 public class SlashCommandListener implements ApplicationRunner {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());

@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'net.stelitop'
-version = '0.0.1-alpha-4'
+version = '0.0.1'
 
 java {
 	sourceCompatibility = '17'
@@ -53,17 +53,6 @@ publishing {
 		}
 	}
 }
-
-//uploadArchives {
-//	repositories {
-//		mavenDeployer {
-//			repository(url: "file:///tmp/myRepo/")
-//			pom.groupId = 'stelitop'
-//			pom.version = '0.0.1-SNAPSHOT'
-//			pom.artifactId = 'mad4j'
-//		}
-//	}
-//}
 
 tasks.named('test') {
 	useJUnitPlatform()

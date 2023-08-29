@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
  * to false in the application.properties file. This can be used because sometimes discord will
  * "outdate" the commands and require you to wait.</p>
  */
+@Component
 public class SlashCommandRegistrar implements ApplicationRunner {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
