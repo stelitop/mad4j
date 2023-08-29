@@ -1,4 +1,4 @@
-package stelitop.mad4j.utils;
+package net.stelitop.mad4j.utils;
 
 /**
  * Represents the result from a generic action.

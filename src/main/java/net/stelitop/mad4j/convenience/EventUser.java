@@ -1,4 +1,4 @@
-package stelitop.mad4j.convenience;
+package net.stelitop.mad4j.convenience;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

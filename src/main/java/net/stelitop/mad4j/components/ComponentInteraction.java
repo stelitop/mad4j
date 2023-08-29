@@ -1,4 +1,4 @@
-package stelitop.mad4j.components;
+package net.stelitop.mad4j.components;
 
 import discord4j.core.event.domain.interaction.ComponentInteractionEvent;
 import org.intellij.lang.annotations.RegExp;

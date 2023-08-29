@@ -1,16 +1,15 @@
-package stelitop.mad4j.listeners;
+package net.stelitop.mad4j.listeners;
 
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
 import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
-import stelitop.mad4j.utils.OptionType;
-import stelitop.mad4j.autocomplete.AutocompletionExecutor;
-import stelitop.mad4j.autocomplete.InputSuggestion;
+import net.stelitop.mad4j.utils.OptionType;
+import net.stelitop.mad4j.autocomplete.AutocompletionExecutor;
+import net.stelitop.mad4j.autocomplete.InputSuggestion;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
