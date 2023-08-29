@@ -1,7 +1,7 @@
-package stelitop.mad4j.autocomplete;
+package net.stelitop.mad4j.autocomplete;
 
 import discord4j.core.event.domain.interaction.ChatInputAutoCompleteEvent;
-import stelitop.mad4j.commands.CommandParam;
+import net.stelitop.mad4j.commands.CommandParam;
 
 import java.util.List;
 

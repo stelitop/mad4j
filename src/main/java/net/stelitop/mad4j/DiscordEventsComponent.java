@@ -1,7 +1,7 @@
-package stelitop.mad4j;
+package net.stelitop.mad4j;
 
 
-import stelitop.mad4j.commands.SlashCommand;
+import net.stelitop.mad4j.commands.SlashCommand;
 import org.springframework.stereotype.Component;
 
 import java.lang.annotation.ElementType;

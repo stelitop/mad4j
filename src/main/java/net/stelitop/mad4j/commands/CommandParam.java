@@ -1,7 +1,7 @@
-package stelitop.mad4j.commands;
+package net.stelitop.mad4j.commands;
 
-import stelitop.mad4j.autocomplete.AutocompletionExecutor;
-import stelitop.mad4j.autocomplete.NullAutocompleteExecutor;
+import net.stelitop.mad4j.autocomplete.AutocompletionExecutor;
+import net.stelitop.mad4j.autocomplete.NullAutocompleteExecutor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

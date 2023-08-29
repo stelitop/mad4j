@@ -1,4 +1,4 @@
-package stelitop.mad4j.utils;
+package net.stelitop.mad4j.utils;
 
 import discord4j.core.object.command.ApplicationCommandOption;
 import discord4j.core.object.entity.Role;

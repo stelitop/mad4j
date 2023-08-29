@@ -1,4 +1,4 @@
-package stelitop.mad4j.commands;
+package net.stelitop.mad4j.commands;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
