@@ -7,7 +7,7 @@ using Java Spring for its convenient features. This library is aimed at creating
 # Setup
 
 Currently, the project is not yet available on mavencentral, so the jar package has to be manually downloaded from the 
-[package section]{https://github.com/stelitop/mad4j/packages} in GitHub. Look for the -plain.jar version. Then, the package can be added to the project as follows:
+[package section](https://github.com/stelitop/mad4j/packages) in GitHub. Look for the -plain.jar version. Then, the package can be added to the project as follows:
 
 For Gradle:
 ```gradle
