@@ -102,7 +102,7 @@ To explain each annotation one by one:
 In contrast to using only regular Discord4j, it is first recommended to make a separate JSON file that contains the slash command signature. Then, when we create
 a ChatInputInteractionListener we must first verify this is the specific slash command by performing tedious checks. Next, we have to extract the parameters from
 the event which is not always trivial and THEN finally proceed with the actual logic. This way of development does not hold well when changes occur and can
-lead to many problems down the line.
+lead to many problems down the line. You can see an example [here](https://docs.discord4j.com/interactions/application-commands/#simplifying-the-lifecycle).
 
 ## Message Component Interactions
 To be done.
