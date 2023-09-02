@@ -10,6 +10,7 @@ import net.stelitop.mad4j.autocomplete.InputSuggestion;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -30,6 +31,7 @@ public class CommandOptionAutocompleteListener implements ApplicationRunner {
     private final Map<Class<? extends AutocompletionExecutor>, AutocompletionExecutor> autocompletionExecutorBeans;
     private final Map<Pair<String, String>, Class<? extends AutocompletionExecutor>> commandNameParamToExecutor;
 
+    @Autowired
     public CommandOptionAutocompleteListener(
             GatewayDiscordClient client,
             List<AutocompletionExecutor> autocompletionExecutors

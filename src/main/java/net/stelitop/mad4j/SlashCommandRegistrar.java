@@ -16,6 +16,7 @@ import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
 import net.stelitop.mad4j.utils.OptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
@@ -50,6 +51,7 @@ public class SlashCommandRegistrar implements ApplicationRunner {
     private final ApplicationContext applicationContext;
     private final Environment environment;
 
+    @Autowired
     public SlashCommandRegistrar(
             GatewayDiscordClient gatewayDiscordClient,
             CommandOptionAutocompleteListener commandOptionAutocompleteListener,

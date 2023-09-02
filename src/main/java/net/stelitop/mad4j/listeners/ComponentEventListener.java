@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
@@ -38,6 +39,7 @@ public class ComponentEventListener implements ApplicationRunner {
     private final GatewayDiscordClient client;
     private final ApplicationContext applicationContext;
 
+    @Autowired
     public ComponentEventListener(
             GatewayDiscordClient client,
             ApplicationContext applicationContext
