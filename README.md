@@ -85,7 +85,8 @@ are created. The arguments of the method also use annotations to specify the par
     @CommandParam(name = "x", description = "The first number.") long x,
     @CommandParam(name = "y", description = "The second number.") long y,
 ) {
-    return event.reply(x + y);
+    long sum = x + y;
+    return event.reply("Sum: " + sum);
 }
 ```
 
