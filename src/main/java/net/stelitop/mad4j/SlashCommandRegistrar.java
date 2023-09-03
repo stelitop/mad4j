@@ -5,6 +5,7 @@ import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
+import discord4j.discordjson.possible.Possible;
 import discord4j.rest.RestClient;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
@@ -293,6 +294,18 @@ public class SlashCommandRegistrar implements ApplicationRunner {
             acodBuilder.autocomplete(true);
             String paramName = annotation.name().toLowerCase();
             commandOptionAutocompleteListener.addMapping(commandName, paramName, annotation.autocomplete());
+        }
+        if (annotation.minValue() != Double.MIN_VALUE) {
+            acodBuilder.minValue(annotation.minValue());
+        }
+        if (annotation.maxValue() != Double.MAX_VALUE) {
+            acodBuilder.maxValue(annotation.maxValue());
+        }
+        if (annotation.minLength() > 0) {
+            acodBuilder.minLength(annotation.minLength());
+        }
+        if (annotation.maxLength() != Integer.MAX_VALUE) {
+            acodBuilder.maxLength(annotation.maxLength());
         }
 
         addChoicesToCommandParam(acodBuilder, annotation.choices());

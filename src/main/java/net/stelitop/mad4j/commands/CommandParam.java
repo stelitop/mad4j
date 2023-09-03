@@ -41,4 +41,22 @@ public @interface CommandParam {
      */
     Class<? extends AutocompletionExecutor> autocomplete() default NullAutocompleteExecutor.class;
 
+    /**
+     * The minimum value that this parameter must take. Only works for numerical params.
+     */
+    double minValue() default Double.MIN_VALUE;
+    /**
+     * The maximum value that this parameter must take. Only works for numerical params.
+     */
+    double maxValue() default Double.MAX_VALUE;
+
+    /**
+     * The minimum length for a string parameter.
+     */
+    int minLength() default 0;
+
+    /**
+     * The maximum length for a string parameter.
+     */
+    int maxLength() default Integer.MAX_VALUE;
 }
