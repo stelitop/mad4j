@@ -6,7 +6,7 @@ using Java Spring for its convenient features. This library is aimed at creating
 
 # Setup
 
-Currently, the project is not yet available on mavencentral, so the jar package has to be manually downloaded from the 
+Currently, the project is _**not yet available on mavencentral**_, so the jar package has to be manually downloaded from the 
 [package section](https://github.com/stelitop/mad4j/packages) in GitHub. Look for the -plain.jar version. Then, the package can be added to the project as follows:
 
 For Gradle:
@@ -22,7 +22,21 @@ To be done
 # Configuration
 
 Since the library is based on Java Spring, it contains components that have to be included in your Spring context. There are two suggested ways to do this:
-- The first is to directly import the Mad4jConfig to the main class of the Spring application:
+- The first is to import the Mad4jConfig into a custom configuration component. This is the recommended way, as this way you have
+  more control over the library. It is also easier to disable when testing needs to be done on other parts of the bot, such as testing JPA repositories.
+  ```java
+  import net.stelitop.mad4j.Mad4jConfig;
+  import org.springframework.context.annotation.Configuration;
+  import org.springframework.context.annotation.Import;
+
+  @Import(Mad4jConfig.class)
+  @Configuration
+  public class CustomMad4jConfig {
+  }
+  ```
+  
+- The second way is to directly import the Mad4jConfig to the main class of the Spring application. This is a bit simpler, but it might be problematic
+  in bigger applications.
   ```java
   import net.stelitop.mad4j.Mad4jConfig;
   import org.springframework.boot.SpringApplication;
@@ -37,35 +51,27 @@ Since the library is based on Java Spring, it contains components that have to b
     }
   }
   ```
-- The second is almost the same, except we import the Mad4jConfig in a separate configuration component. This is the recommended way, as this way you have
-  more control over the library. It is also easier to disable when testing needs to be done on other parts of the bot, such as testing JPA repositories.
-  ```java
-  import net.stelitop.mad4j.Mad4jConfig;
-  import org.springframework.context.annotation.Configuration;
-  import org.springframework.context.annotation.Import;
-
-  @Import(Mad4jConfig.class)
-  @Configuration
-  public class CustomMad4jConfig {
-  }
-  ```
 
 The other thing that needs to be configured is the discord client bean. A bean of type discord4j.core.GatewayDiscordClient must be declared that starts
 the discord bot. The simplest such configuration is as follows:
 ```java
-@Bean
-public GatewayDiscordClient gatewayDiscordClient() {
-  String tokenStr = "DISCORD_BOT_TOKEN";
+@Configuration
+public CustomMad4jConfig {
 
-  return DiscordClientBuilder.create(tokenStr).build()
-      .gateway()
-      .setInitialPresence(ignore -> ClientPresence.online(ClientActivity.playing("Bot is online!")))
-      .login()
-      .block();
+  @Bean
+  public GatewayDiscordClient gatewayDiscordClient() {
+    String tokenStr = "DISCORD_BOT_TOKEN";
+  
+    return DiscordClientBuilder.create(tokenStr).build()
+        .gateway()
+        .setInitialPresence(ignore -> ClientPresence.online(ClientActivity.playing("Bot is online!")))
+        .login()
+        .block();
+  }
 }
 ```
 
-Being able to declare your own bean gives the developer more flexibility in how the bot can be set up, along with tying some functionality to outside configurations.
+Being able to declare your own bean gives the developer more flexibility in how the bot can be set up, along with being able to tie some functionality to outside configurations.
 
 # Features
 
@@ -100,13 +106,10 @@ To explain each annotation one by one:
 - The @CommandParam annotations are used for the different inputs of the slash command (if there are any). When a command is invoked, the values from Discord
   are automatically injected into the method. This annotation has many optional fields for special cases.
 
-In contrast to using only regular Discord4j, it is first recommended to make a separate JSON file that contains the slash command signature. Then, when we create
-a ChatInputInteractionListener we must first verify this is the specific slash command by performing tedious checks. Next, we have to extract the parameters from
-the event which is not always trivial and THEN finally proceed with the actual logic. This way of development does not hold well when changes occur and can
-lead to many problems down the line. You can see an example [here](https://docs.discord4j.com/interactions/application-commands/#simplifying-the-lifecycle).
+Using only regular Discord4j will usually be more tedious overall and might even require multiple files (provided you follow the recommended way). You can see an example [here](https://docs.discord4j.com/interactions/application-commands/#simplifying-the-lifecycle) on how it's normally done.
 
 ## Message Component Interactions
-To be done.
+**To be done.**
 
 ## Command Option Autocompletion
-To be done.
+**To be done.**
