@@ -5,6 +5,7 @@ import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
+import discord4j.discordjson.possible.Possible;
 import discord4j.rest.RestClient;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
@@ -16,6 +17,7 @@ import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
 import net.stelitop.mad4j.utils.OptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
@@ -50,6 +52,7 @@ public class SlashCommandRegistrar implements ApplicationRunner {
     private final ApplicationContext applicationContext;
     private final Environment environment;
 
+    @Autowired
     public SlashCommandRegistrar(
             GatewayDiscordClient gatewayDiscordClient,
             CommandOptionAutocompleteListener commandOptionAutocompleteListener,
@@ -291,6 +294,18 @@ public class SlashCommandRegistrar implements ApplicationRunner {
             acodBuilder.autocomplete(true);
             String paramName = annotation.name().toLowerCase();
             commandOptionAutocompleteListener.addMapping(commandName, paramName, annotation.autocomplete());
+        }
+        if (annotation.minValue() != Double.MIN_VALUE) {
+            acodBuilder.minValue(annotation.minValue());
+        }
+        if (annotation.maxValue() != Double.MAX_VALUE) {
+            acodBuilder.maxValue(annotation.maxValue());
+        }
+        if (annotation.minLength() > 0) {
+            acodBuilder.minLength(annotation.minLength());
+        }
+        if (annotation.maxLength() != Integer.MAX_VALUE) {
+            acodBuilder.maxLength(annotation.maxLength());
         }
 
         addChoicesToCommandParam(acodBuilder, annotation.choices());

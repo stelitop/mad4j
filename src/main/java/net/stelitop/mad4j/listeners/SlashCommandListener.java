@@ -18,6 +18,7 @@ import net.stelitop.mad4j.utils.OptionType;
 import net.stelitop.mad4j.requirements.CommandRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
@@ -55,6 +56,7 @@ public class SlashCommandListener implements ApplicationRunner {
     private final Map<Class<? extends CommandRequirementExecutor>, CommandRequirementExecutor> possibleRequirements;
     private List<SlashCommandEntry> slashCommands;
 
+    @Autowired
     public SlashCommandListener(
             ApplicationContext applicationContext,
             GatewayDiscordClient client,
