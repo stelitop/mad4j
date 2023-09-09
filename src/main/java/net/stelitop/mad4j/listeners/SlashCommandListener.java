@@ -6,6 +6,7 @@ import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import net.stelitop.mad4j.commands.DefaultValue;
 import net.stelitop.mad4j.requirements.CommandRequirementExecutor;
 import net.stelitop.mad4j.utils.ActionResult;
 import net.stelitop.mad4j.DiscordEventsComponent;
@@ -191,14 +192,24 @@ public class SlashCommandListener implements ApplicationRunner {
                 return null;
             }
             ApplicationCommandInteractionOption option = options.get(annotation.name().toLowerCase());
-            return getValueFromOption(option);
+            return getValueFromOption(option, param);
         }
 
         return null;
     }
 
-    private Object getValueFromOption(ApplicationCommandInteractionOption option) {
+    private Object getValueFromOption(ApplicationCommandInteractionOption option, Parameter param) {
         if (option.getValue().isEmpty()) {
+            if (param.isAnnotationPresent(DefaultValue.class)) {
+                DefaultValue dv = param.getAnnotation(DefaultValue.class);
+                return switch (option.getType()) {
+                    case NUMBER -> dv.number();
+                    case INTEGER -> (long)(dv.number());
+                    case STRING -> dv.string();
+                    case BOOLEAN -> dv.bool();
+                    default -> null;
+                };
+            }
             return null;
         }
         ApplicationCommandInteractionOptionValue value = option.getValue().get();
