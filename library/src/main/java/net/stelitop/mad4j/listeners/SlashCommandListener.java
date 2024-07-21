@@ -6,6 +6,7 @@ import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 import net.stelitop.mad4j.commands.DefaultValue;
 import net.stelitop.mad4j.requirements.CommandRequirementExecutor;
 import net.stelitop.mad4j.utils.ActionResult;
@@ -29,6 +30,7 @@ import reactor.core.publisher.Mono;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -210,7 +212,16 @@ public class SlashCommandListener implements ApplicationRunner {
         if (!param.isAnnotationPresent(CommandParam.class)) return null;
         CommandParam annotation = param.getAnnotation(CommandParam.class);
         if (!options.containsKey(annotation.name().toLowerCase())) {
-            return null;
+            if (!param.isAnnotationPresent(DefaultValue.class)) return null;
+            DefaultValue dv = param.getAnnotation(DefaultValue.class);
+
+            Class<?> paramClass = param.getType();
+            if (paramClass.equals(double.class)) return dv.number();
+            else if (paramClass.equals(int.class)) return (int)dv.number();
+            else if (paramClass.equals(long.class)) return (long)dv.number();
+            else if (paramClass.equals(String.class)) return dv.string();
+            else if (paramClass.equals(boolean.class)) return dv.bool();
+            else return null;
         }
         ApplicationCommandInteractionOption option = options.get(annotation.name().toLowerCase());
         return getValueFromOption(option, param);
@@ -239,7 +250,6 @@ public class SlashCommandListener implements ApplicationRunner {
             return null;
         }
         ApplicationCommandInteractionOptionValue value = option.getValue().get();
-
         return switch (option.getType()) {
             case BOOLEAN -> value.asBoolean();
             case INTEGER -> value.asLong();

@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Bot config files containing tokens for the test bots. ###
+**/testbotconfig.**
