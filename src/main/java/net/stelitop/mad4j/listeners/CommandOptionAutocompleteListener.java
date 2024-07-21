@@ -52,12 +52,12 @@ public class CommandOptionAutocompleteListener implements ApplicationRunner {
         String paramName = event.getFocusedOption().getName();
         Class<? extends AutocompletionExecutor> executorClass = commandNameParamToExecutor.get(Pair.of(commandName, paramName));
         if (executorClass == null) {
-            LOGGER.error("Command \"" + commandName + "\" had no binded autocompleter for param \"" + paramName + "\"!");
+            LOGGER.error("Command \"" + commandName + "\" had no bound autocomplete class for param \"" + paramName + "\"!");
             return Mono.empty();
         }
         AutocompletionExecutor executor = autocompletionExecutorBeans.get(executorClass);
         if (executor == null) {
-            LOGGER.error("Command \"" + commandName + "\" had no autocompleter implementation for param \"" + paramName + "\"!");
+            LOGGER.error("Command \"" + commandName + "\" had no autocomplete bean for param \"" + paramName + "\"!");
             return Mono.empty();
         }
 

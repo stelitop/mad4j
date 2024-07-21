@@ -66,7 +66,7 @@ public class SlashCommandRegistrar implements ApplicationRunner {
     }
 
     /**
-     * <p>Registers all properly annotated slash commands into the discord bot.</p>
+     * <p>Registers all properly annotated slash commands as global commands for the discord bot.</p>
      *
      * <p>First all annotated methods are collected. Then, the names of the commands are
      * used to structure them into a tree hierarchy. The first name of the commands is used

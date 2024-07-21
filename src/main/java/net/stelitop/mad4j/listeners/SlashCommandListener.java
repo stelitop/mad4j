@@ -100,6 +100,9 @@ public class SlashCommandListener implements ApplicationRunner {
         client.on(ChatInputInteractionEvent.class, this::handle).subscribe();
     }
 
+    /**
+     * Data class for the basic data required to invoke a slash command and analyse it.
+     */
     @NoArgsConstructor
     @AllArgsConstructor
     private static class SlashCommandEntry {
@@ -172,32 +175,55 @@ public class SlashCommandListener implements ApplicationRunner {
                     .withEphemeral(true);
         } catch (ClassCastException e) {
             LOGGER.error(command.name + "'s result could not be cast to Mono<Void>. Check method signature.");
+            e.printStackTrace();
             return event.reply("Could not cast result of slash command.")
                     .withEphemeral(true);
         }
     }
 
+    /**
+     * <p>Maps data from the d4j API of a slash command to a method parameter of
+     * a mad4j command method. This primarily includes the parameters of the command, annotated
+     * with {@link CommandParam}, but also includes convenience injections, such as {@link EventUser}
+     * abd {@link InteractionEvent}.</p>
+     *
+     * @param event The d4j slash command event.
+     * @param options The
+     * @param param Reflection object of the parameter we want to inject in the method invokation
+     * @return The value of the command to inject into the parameter, or null if there was no
+     *     injectable annotation present or another error occurred.
+     */
     private Object mapCommandParamToMethodParam(
             ChatInputInteractionEvent event,
             Map<String, ApplicationCommandInteractionOption> options,
             Parameter param
     ) {
+        // Convenience injectors.
+        // Inject the interaction event. Does not check if this is the correct event type
         if (param.isAnnotationPresent(InteractionEvent.class)) return event;
+        // Inject the User object
         if (param.isAnnotationPresent(EventUser.class)) return event.getInteraction().getUser();
+        // Inject the Discord ID of the user
         if (param.isAnnotationPresent(EventUserId.class)) return event.getInteraction().getUser().getId().asLong();
 
-        if (param.isAnnotationPresent(CommandParam.class)) {
-            CommandParam annotation = param.getAnnotation(CommandParam.class);
-            if (!options.containsKey(annotation.name().toLowerCase())) {
-                return null;
-            }
-            ApplicationCommandInteractionOption option = options.get(annotation.name().toLowerCase());
-            return getValueFromOption(option, param);
+        // Finally, check for actual command parameters.
+        if (!param.isAnnotationPresent(CommandParam.class)) return null;
+        CommandParam annotation = param.getAnnotation(CommandParam.class);
+        if (!options.containsKey(annotation.name().toLowerCase())) {
+            return null;
         }
-
-        return null;
+        ApplicationCommandInteractionOption option = options.get(annotation.name().toLowerCase());
+        return getValueFromOption(option, param);
     }
 
+    /**
+     * Extracts the value from a d4j slash command option. If there is no value, but there is a
+     * default value given, then that is returned.
+     *
+     * @param option The dj4 slash command interactino option.
+     * @param param The reflection parameter corresponding to the mad4j command method.
+     * @return The value to inject into the parameter.
+     */
     private Object getValueFromOption(ApplicationCommandInteractionOption option, Parameter param) {
         if (option.getValue().isEmpty()) {
             if (param.isAnnotationPresent(DefaultValue.class)) {
@@ -226,6 +252,12 @@ public class SlashCommandListener implements ApplicationRunner {
         };
     }
 
+    /**
+     * Checks
+     * @param event
+     * @param command
+     * @return
+     */
     private ActionResult<Void> verifyCommandConditions(ChatInputInteractionEvent event, SlashCommandEntry command) {
         List<CommandRequirement> conditionAnnotations = Arrays.stream(command.method.getAnnotations())
                 .map(a -> a.annotationType().getAnnotation(CommandRequirement.class))
