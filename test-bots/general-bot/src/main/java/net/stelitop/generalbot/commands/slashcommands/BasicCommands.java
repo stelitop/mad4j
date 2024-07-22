@@ -1,6 +1,7 @@
 package net.stelitop.generalbot.commands.slashcommands;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import net.stelitop.generalbot.commandrequirements.UnusableCommand;
 import net.stelitop.mad4j.DiscordEventsComponent;
 import net.stelitop.mad4j.InteractionEvent;
 import net.stelitop.mad4j.commands.CommandParam;
@@ -63,5 +64,17 @@ public class BasicCommands {
             String name
     ) {
         return event.reply("Nice to meet you, " + name + "!");
+    }
+
+    @UnusableCommand
+    @SlashCommand(
+            name = "basic unusable",
+            description = "This command should return an error message."
+    )
+    public Mono<Void> evenTime(
+            @InteractionEvent
+            ChatInputInteractionEvent event
+    ) {
+        return event.reply("Used! This is an error, the requirement is not working.");
     }
 }
