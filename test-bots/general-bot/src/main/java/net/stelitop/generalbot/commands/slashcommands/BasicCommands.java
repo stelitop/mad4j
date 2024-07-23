@@ -22,24 +22,18 @@ public class BasicCommands {
         this.random = new Random();
     }
 
-    /**
-     * Tests the simplest form of a slash command - no extra parameters.
-     */
     @SlashCommand(
             name = "basic dice",
-            description = "Rolls a 6-sided die!"
+            description = "Rolls a 6-sided die. Tests simplest command with no parameters."
     )
     public Mono<Void> diceRollEmpty(@InteractionEvent ChatInputInteractionEvent event) {
         int number = random.nextInt(6) + 1;
         return event.reply("You rolled " + number + "!");
     }
 
-    /**
-     * Tests simple command parameters.
-     */
     @SlashCommand(
             name = "basic add",
-            description = "Adds two numbers together."
+            description = "Adds two numbers together. Tests simple command parameters."
     )
     public Mono<Void> addNumbers(
             @InteractionEvent
@@ -53,8 +47,22 @@ public class BasicCommands {
     }
 
     @SlashCommand(
+            name = "basic number",
+            description = "Inputs an optional number. Tests optional parameters with no default value."
+    )
+    public Mono<Void> number(
+            @InteractionEvent
+            ChatInputInteractionEvent event,
+            @CommandParam(name = "value", description = "Number to input.", required = false)
+            Long value
+    ) {
+        if (value == null) return event.reply("No number was given!");
+        else return event.reply("The number is " + value + "!");
+    }
+
+    @SlashCommand(
             name = "basic greet",
-            description = "Greets a person. Bob by default."
+            description = "Greets a person. Bob by default. Tests default values to optional parameters."
     )
     public Mono<Void> greeting(
             @InteractionEvent
@@ -69,9 +77,9 @@ public class BasicCommands {
     @UnusableCommand
     @SlashCommand(
             name = "basic unusable",
-            description = "This command should return an error message."
+            description = "This command should return an error message. Tests command requirements."
     )
-    public Mono<Void> evenTime(
+    public Mono<Void> unusableCommand(
             @InteractionEvent
             ChatInputInteractionEvent event
     ) {
