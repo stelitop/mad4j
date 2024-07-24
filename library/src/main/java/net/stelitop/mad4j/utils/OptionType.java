@@ -21,12 +21,12 @@ public class OptionType {
     public static final int NUMBER = ApplicationCommandOption.Type.NUMBER.getValue();
     public static final int ATTACHMENT = ApplicationCommandOption.Type.ATTACHMENT.getValue();
 
-    private static final Map<Class<?>, Integer> paramClassToCode = new HashMap<>() {
+    public static final Map<Class<?>, Integer> paramClassToCode = new HashMap<>() {
         {
             put(long.class, OptionType.INTEGER);
             put(Long.class, OptionType.INTEGER);
-            put(Integer.class, OptionType.INTEGER);
-            put(int.class, OptionType.INTEGER);
+            //put(Integer.class, OptionType.INTEGER);
+            //put(int.class, OptionType.INTEGER);
             put(boolean.class, OptionType.BOOLEAN);
             put(Boolean.class, OptionType.BOOLEAN);
             put(String.class, OptionType.STRING);
@@ -35,6 +35,7 @@ public class OptionType {
             put(Role.class, OptionType.ROLE);
             put(double.class, OptionType.NUMBER);
             put(Double.class, OptionType.NUMBER);
+            put(float.class, OptionType.NUMBER);
             put(Float.class, OptionType.NUMBER);
         }
     };
