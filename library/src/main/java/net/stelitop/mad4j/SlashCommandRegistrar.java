@@ -30,6 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import javax.management.RuntimeErrorException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -172,18 +173,20 @@ public class SlashCommandRegistrar implements ApplicationRunner {
         CommandTreeNode shadowRoot = new CommandTreeNode("", new ArrayList<>(), null);
         for (var method : methods) {
             SlashCommand scAnnotation = method.getAnnotation(SlashCommand.class);
-            if (scAnnotation == null) {
-                continue;
-            }
-            String[] parts = scAnnotation.name().toLowerCase().split(" ");
-            if (parts.length == 0) {
-                continue;
-            }
+            if (scAnnotation == null) continue;
+
+            String commandName = scAnnotation.name().toLowerCase();
+            String[] parts = commandName.split(" ");
+            if (parts.length == 0) continue;
 
             CommandTreeNode currentNode = shadowRoot;
-            for (String partName : parts) {
+            for (int i = 0; i < parts.length; i++) {
+                String partName = parts[i];
                 if (currentNode.children.stream().noneMatch(x -> x.name.equals(partName))) {
                     currentNode.children.add(new CommandTreeNode(partName, new ArrayList<>(), null));
+                }
+                else if (i == parts.length - 1) {
+                    throw new RuntimeException("The command \"" + scAnnotation.name().toLowerCase() + "\" has been declared multiple times!");
                 }
                 currentNode = currentNode.children.stream().filter(x -> x.name.equals(partName)).findFirst().get();
             }
