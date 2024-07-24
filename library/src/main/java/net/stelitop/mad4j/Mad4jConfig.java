@@ -15,6 +15,11 @@ import org.springframework.core.env.Environment;
 
 import java.util.List;
 
+/**
+ * <p>Configuration for mad4j.</p>
+ *
+ * <p>This loads all components part of the package when used into another project.</p>
+ */
 @ComponentScan("net.stelitop.mad4j")
 @Configuration
 public class Mad4jConfig {

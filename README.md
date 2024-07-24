@@ -56,7 +56,7 @@ The other thing that needs to be configured is the discord client bean. A bean o
 the discord bot. The simplest such configuration is as follows:
 ```java
 @Configuration
-public CustomMad4jConfig {
+public class CustomMad4jConfig {
 
   @Bean
   public GatewayDiscordClient gatewayDiscordClient() {

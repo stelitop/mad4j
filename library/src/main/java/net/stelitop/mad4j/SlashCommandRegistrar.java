@@ -1,6 +1,8 @@
 package net.stelitop.mad4j;
 
 import discord4j.core.GatewayDiscordClient;
+import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.entity.User;
 import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
@@ -12,8 +14,12 @@ import lombok.ToString;
 import net.stelitop.mad4j.autocomplete.NullAutocompleteExecutor;
 import net.stelitop.mad4j.commands.CommandParam;
 import net.stelitop.mad4j.commands.CommandParamChoice;
+import net.stelitop.mad4j.commands.DefaultValue;
 import net.stelitop.mad4j.commands.SlashCommand;
+import net.stelitop.mad4j.convenience.EventUser;
+import net.stelitop.mad4j.convenience.EventUserId;
 import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
+import net.stelitop.mad4j.utils.ActionResult;
 import net.stelitop.mad4j.utils.OptionType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +30,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import javax.management.RuntimeErrorException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -66,7 +73,7 @@ public class SlashCommandRegistrar implements ApplicationRunner {
     }
 
     /**
-     * <p>Registers all properly annotated slash commands into the discord bot.</p>
+     * <p>Registers all properly annotated slash commands as global commands for the discord bot.</p>
      *
      * <p>First all annotated methods are collected. Then, the names of the commands are
      * used to structure them into a tree hierarchy. The first name of the commands is used
@@ -93,13 +100,28 @@ public class SlashCommandRegistrar implements ApplicationRunner {
                 .filter(x -> Arrays.stream(x.getParameters()).noneMatch(y -> y.isAnnotationPresent(InteractionEvent.class)))
                 .map(Method::getName)
                 .collect(Collectors.joining(", "));
+
+        List<ActionResult<Void>> failedMethodVerifications = slashCommandMethods.stream()
+                .map(this::verifySlashCommandMethodSignature)
+                .filter(ActionResult::hasFailed)
+                .toList();
+
+        if (!failedMethodVerifications.isEmpty()) {
+            String errorMsg = failedMethodVerifications.size() + " slash command(s) methods were incorrectly defined!";
+            LOGGER.error(errorMsg);
+            for (var result : failedMethodVerifications) {
+                LOGGER.error("-- " + result.errorMessage());
+            }
+            throw new RuntimeException(errorMsg + " Check the error logs for more detail on what went wrong.");
+        }
+
         if (!missingCommandEventAnnotation.isBlank()) {
             throw new RuntimeException("Following commands don't have a command event: " + missingCommandEventAnnotation);
         }
 
         var slashCommandRequests = createCommandRequestsFromMethods(slashCommandMethods);
 
-        String updateCommands = Optional.ofNullable(environment.getProperty("slashcommands.update")).orElse("true");
+        String updateCommands = Optional.ofNullable(environment.getProperty("mad4j.slashcommands.update")).orElse("true");
         if (updateCommands.equalsIgnoreCase("false")) {
             LOGGER.warn("No slash command signatures were updated due to the environment settings!");
             return;
@@ -151,18 +173,20 @@ public class SlashCommandRegistrar implements ApplicationRunner {
         CommandTreeNode shadowRoot = new CommandTreeNode("", new ArrayList<>(), null);
         for (var method : methods) {
             SlashCommand scAnnotation = method.getAnnotation(SlashCommand.class);
-            if (scAnnotation == null) {
-                continue;
-            }
-            String[] parts = scAnnotation.name().toLowerCase().split(" ");
-            if (parts.length == 0) {
-                continue;
-            }
+            if (scAnnotation == null) continue;
+
+            String commandName = scAnnotation.name().toLowerCase();
+            String[] parts = commandName.split(" ");
+            if (parts.length == 0) continue;
 
             CommandTreeNode currentNode = shadowRoot;
-            for (String partName : parts) {
+            for (int i = 0; i < parts.length; i++) {
+                String partName = parts[i];
                 if (currentNode.children.stream().noneMatch(x -> x.name.equals(partName))) {
                     currentNode.children.add(new CommandTreeNode(partName, new ArrayList<>(), null));
+                }
+                else if (i == parts.length - 1) {
+                    throw new RuntimeException("The command \"" + scAnnotation.name().toLowerCase() + "\" has been declared multiple times!");
                 }
                 currentNode = currentNode.children.stream().filter(x -> x.name.equals(partName)).findFirst().get();
             }
@@ -260,7 +284,6 @@ public class SlashCommandRegistrar implements ApplicationRunner {
         String commandName = method.getAnnotation(SlashCommand.class).name().toLowerCase();
 
         for (var parameter : parameters) {
-            if (!parameter.isAnnotationPresent(CommandParam.class)) continue;
             CommandParam paramAnnotation = parameter.getAnnotation(CommandParam.class);
             ret.add(parseRegularCommandParam(paramAnnotation, parameter, commandName));
         }
@@ -332,5 +355,59 @@ public class SlashCommandRegistrar implements ApplicationRunner {
                         .build())
                 .map(x -> (ApplicationCommandOptionChoiceData)x)
                 .toList());
+    }
+
+    // TODO: Might move this functionality to a separate class if it becomes too big, which it likely would.
+    /**
+     * <p>Verifies that the method signature of a slash command method is correct. This includes
+     * the name of the command annotation and the parameter annotations and them having correct
+     * data types.</p>
+     *
+     * @param method The method to verify.
+     * @return An action result that if correct is empty.
+     */
+    private ActionResult<Void> verifySlashCommandMethodSignature(Method method) {
+        SlashCommand sca = method.getAnnotation(SlashCommand.class);
+        if (sca == null) return ActionResult.fail("The slash command with signature " + method + " did not have a @SlashCommand annotation!");
+        if (sca.name().split(" ").length > 3) return ActionResult.fail("The slash command name " + sca.name() + " has too many parts! Maximum 3.");
+
+        for (Parameter par : method.getParameters()) {
+            String msgStart = "Parameter \"" + par + "\" of method \"" + method + "\" ";
+            List<Class<?>> presentAnnotations = new ArrayList<>();
+            if (par.isAnnotationPresent(CommandParam.class)) {
+                presentAnnotations.add(CommandParam.class);
+                if (!OptionType.paramClassToCode.containsKey(par.getType())) {
+                    return ActionResult.fail(msgStart + "has an invalid type " + par.getType().getName());
+                }
+                if (par.isAnnotationPresent(DefaultValue.class) && par.getType().isPrimitive()) {
+                    return ActionResult.fail(msgStart + "cannot have a primitive type with a default value! Long, Double and Boolean should be used instead.");
+                }
+            }
+            if (par.isAnnotationPresent(InteractionEvent.class)) {
+                presentAnnotations.add(InteractionEvent.class);
+                if (!par.getType().equals(ChatInputInteractionEvent.class)) {
+                    return ActionResult.fail(msgStart + "must be of type " + ChatInputInteractionEvent.class + " for Slash Commands!");
+                }
+            }
+            if (par.isAnnotationPresent(EventUser.class)) {
+                presentAnnotations.add(EventUser.class);
+                if (!par.getType().equals(User.class)) {
+                    return ActionResult.fail(msgStart + "must be of type " + User.class);
+                }
+            }
+            if (par.isAnnotationPresent(EventUserId.class)) {
+                presentAnnotations.add(EventUserId.class);
+                if (!par.getType().equals(long.class) && !par.getType().equals(Long.class)) {
+                    return ActionResult.fail(msgStart + "must be of type long!");
+                }
+            }
+
+            if (presentAnnotations.size() > 1) {
+                return ActionResult.fail(msgStart + "has too many annotations, namely: "
+                    + presentAnnotations.stream().map(Class::getName).collect(Collectors.joining(", ")));
+            }
+        }
+
+        return ActionResult.success();
     }
 }
