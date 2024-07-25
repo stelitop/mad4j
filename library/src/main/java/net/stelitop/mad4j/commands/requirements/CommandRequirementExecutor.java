@@ -1,4 +1,4 @@
-package net.stelitop.mad4j.requirements;
+package net.stelitop.mad4j.commands.requirements;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import net.stelitop.mad4j.utils.ActionResult;

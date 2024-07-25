@@ -1,4 +1,4 @@
-package net.stelitop.mad4j;
+package net.stelitop.mad4j.commands;
 
 import discord4j.core.GatewayDiscordClient;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
@@ -7,17 +7,14 @@ import discord4j.discordjson.json.ApplicationCommandOptionChoiceData;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.discordjson.json.ImmutableApplicationCommandOptionData;
-import discord4j.discordjson.possible.Possible;
 import discord4j.rest.RestClient;
 import lombok.AllArgsConstructor;
 import lombok.ToString;
-import net.stelitop.mad4j.autocomplete.NullAutocompleteExecutor;
-import net.stelitop.mad4j.commands.CommandParam;
-import net.stelitop.mad4j.commands.CommandParamChoice;
-import net.stelitop.mad4j.commands.DefaultValue;
-import net.stelitop.mad4j.commands.SlashCommand;
-import net.stelitop.mad4j.convenience.EventUser;
-import net.stelitop.mad4j.convenience.EventUserId;
+import net.stelitop.mad4j.DiscordEventsComponent;
+import net.stelitop.mad4j.commands.autocomplete.NullAutocompleteExecutor;
+import net.stelitop.mad4j.commands.*;
+import net.stelitop.mad4j.commands.convenience.EventUser;
+import net.stelitop.mad4j.commands.convenience.EventUserId;
 import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
 import net.stelitop.mad4j.utils.ActionResult;
 import net.stelitop.mad4j.utils.OptionType;
@@ -30,7 +27,6 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import javax.management.RuntimeErrorException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -96,11 +92,6 @@ public class SlashCommandRegistrar implements ApplicationRunner {
                 .filter(m -> m.isAnnotationPresent(SlashCommand.class))
                 .toList();
 
-        String missingCommandEventAnnotation = slashCommandMethods.stream()
-                .filter(x -> Arrays.stream(x.getParameters()).noneMatch(y -> y.isAnnotationPresent(InteractionEvent.class)))
-                .map(Method::getName)
-                .collect(Collectors.joining(", "));
-
         List<ActionResult<Void>> failedMethodVerifications = slashCommandMethods.stream()
                 .map(this::verifySlashCommandMethodSignature)
                 .filter(ActionResult::hasFailed)
@@ -113,10 +104,6 @@ public class SlashCommandRegistrar implements ApplicationRunner {
                 LOGGER.error("-- " + result.errorMessage());
             }
             throw new RuntimeException(errorMsg + " Check the error logs for more detail on what went wrong.");
-        }
-
-        if (!missingCommandEventAnnotation.isBlank()) {
-            throw new RuntimeException("Following commands don't have a command event: " + missingCommandEventAnnotation);
         }
 
         var slashCommandRequests = createCommandRequestsFromMethods(slashCommandMethods);
@@ -313,7 +300,7 @@ public class SlashCommandRegistrar implements ApplicationRunner {
         // For Autocomplete:
         // TODO: Check that there are no options available for the command
         // TODO: Check that the type of the input is one of String, Number or Integer
-        if (annotation.autocomplete()!= NullAutocompleteExecutor.class) {
+        if (annotation.autocomplete() != NullAutocompleteExecutor.class) {
             acodBuilder.autocomplete(true);
             String paramName = annotation.name().toLowerCase();
             commandOptionAutocompleteListener.addMapping(commandName, paramName, annotation.autocomplete());

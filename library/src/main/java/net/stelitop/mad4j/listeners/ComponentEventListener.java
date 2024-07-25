@@ -8,12 +8,13 @@ import discord4j.core.event.domain.interaction.SelectMenuInteractionEvent;
 import discord4j.core.object.entity.User;
 import lombok.Builder;
 import lombok.ToString;
+import net.stelitop.mad4j.interactions.EventResponse;
 import net.stelitop.mad4j.utils.ActionResult;
-import net.stelitop.mad4j.components.ComponentInteraction;
+import net.stelitop.mad4j.commands.components.ComponentInteraction;
 import net.stelitop.mad4j.DiscordEventsComponent;
-import net.stelitop.mad4j.InteractionEvent;
-import net.stelitop.mad4j.convenience.EventUser;
-import net.stelitop.mad4j.convenience.EventUserId;
+import net.stelitop.mad4j.commands.InteractionEvent;
+import net.stelitop.mad4j.commands.convenience.EventUser;
+import net.stelitop.mad4j.commands.convenience.EventUserId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -152,25 +153,22 @@ public class ComponentEventListener implements ApplicationRunner {
             args[i] = mapParamAR.getResponse();
         }
 
-
-        if (!imp.method.getReturnType().equals(Mono.class)) {
-            LOGGER.error(errorStart + "'s result could not be cast to Mono<Void>. Check method signature.");
-            return event.reply("Could not cast result of slash command.")
-                    .withEphemeral(true);
-        }
-
         try {
             Object result = imp.method.invoke(imp.bean, args);
-            if (Mono.class.isAssignableFrom(result.getClass())) {
+            if (result instanceof EventResponse er) {
+                return er.respond(event);
+            }
+            else if (Mono.class.isAssignableFrom(result.getClass())) {
                 return ((Mono<?>) result).cast(Void.class);
             }
-            return event.reply("Could not cast result of slash command.")
-                    .withEphemeral(true);
+            else throw new ClassCastException();
+
         } catch (IllegalAccessException | InvocationTargetException e) {
             LOGGER.error(errorStart + " had a problem during invoking!");
-            throw new RuntimeException(e);
+            return event.reply("An error occurred invoking the button!")
+                    .withEphemeral(true);
         } catch (ClassCastException e) {
-            LOGGER.error(errorStart + "'s result could not be cast to Mono<Void>. Check method signature.");
+            LOGGER.error(errorStart + "'s result could not be cast to any acceptable type. Check method signature.");
             return event.reply("Could not cast result of slash command.")
                     .withEphemeral(true);
         }

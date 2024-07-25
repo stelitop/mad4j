@@ -7,9 +7,9 @@ import discord4j.core.object.component.ActionRow;
 import discord4j.core.object.component.Button;
 import discord4j.core.object.component.SelectMenu;
 import net.stelitop.mad4j.DiscordEventsComponent;
-import net.stelitop.mad4j.InteractionEvent;
+import net.stelitop.mad4j.commands.InteractionEvent;
 import net.stelitop.mad4j.commands.SlashCommand;
-import net.stelitop.mad4j.components.ComponentInteraction;
+import net.stelitop.mad4j.commands.components.ComponentInteraction;
 import reactor.core.publisher.Mono;
 
 import java.util.List;

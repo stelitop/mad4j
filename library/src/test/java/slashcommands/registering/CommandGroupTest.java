@@ -5,7 +5,7 @@ import discord4j.discordjson.json.ApplicationCommandOptionData;
 import discord4j.discordjson.json.ApplicationCommandRequest;
 import discord4j.rest.service.ApplicationService;
 import net.stelitop.mad4j.DiscordEventsComponent;
-import net.stelitop.mad4j.InteractionEvent;
+import net.stelitop.mad4j.commands.InteractionEvent;
 import net.stelitop.mad4j.commands.CommandParam;
 import net.stelitop.mad4j.commands.SlashCommand;
 import net.stelitop.mad4j.utils.OptionType;

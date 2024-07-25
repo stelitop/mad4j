@@ -3,7 +3,7 @@ package net.stelitop.generalbot.commands.slashcommands;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import net.stelitop.generalbot.commandrequirements.UnusableCommand;
 import net.stelitop.mad4j.DiscordEventsComponent;
-import net.stelitop.mad4j.InteractionEvent;
+import net.stelitop.mad4j.commands.InteractionEvent;
 import net.stelitop.mad4j.commands.CommandParam;
 import net.stelitop.mad4j.commands.DefaultValue;
 import net.stelitop.mad4j.commands.SlashCommand;

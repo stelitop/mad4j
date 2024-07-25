@@ -1,4 +1,4 @@
-package net.stelitop.mad4j;
+package net.stelitop.mad4j.commands;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

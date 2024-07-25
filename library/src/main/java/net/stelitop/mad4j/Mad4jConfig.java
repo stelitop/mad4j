@@ -1,19 +1,7 @@
 package net.stelitop.mad4j;
 
-import discord4j.core.GatewayDiscordClient;
-import net.stelitop.mad4j.autocomplete.AutocompletionExecutor;
-import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
-import net.stelitop.mad4j.listeners.ComponentEventListener;
-import net.stelitop.mad4j.listeners.SlashCommandListener;
-import net.stelitop.mad4j.requirements.CommandRequirementExecutor;
-import org.checkerframework.checker.units.qual.C;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
-
-import java.util.List;
 
 /**
  * <p>Configuration for mad4j.</p>

@@ -1,4 +1,4 @@
-package net.stelitop.mad4j.autocomplete;
+package net.stelitop.mad4j.commands.autocomplete;
 
 import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
