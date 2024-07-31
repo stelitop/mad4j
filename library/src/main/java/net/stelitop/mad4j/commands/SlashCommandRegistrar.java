@@ -12,7 +12,6 @@ import lombok.AllArgsConstructor;
 import lombok.ToString;
 import net.stelitop.mad4j.DiscordEventsComponent;
 import net.stelitop.mad4j.commands.autocomplete.NullAutocompleteExecutor;
-import net.stelitop.mad4j.commands.*;
 import net.stelitop.mad4j.commands.convenience.EventUser;
 import net.stelitop.mad4j.commands.convenience.EventUserId;
 import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
@@ -23,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -52,20 +50,20 @@ public class SlashCommandRegistrar implements ApplicationRunner {
 
     private final GatewayDiscordClient gatewayDiscordClient;
     private final CommandOptionAutocompleteListener commandOptionAutocompleteListener;
-    private final ApplicationContext applicationContext;
     private final Environment environment;
+    private final CommandData commandData;
 
     @Autowired
     public SlashCommandRegistrar(
             GatewayDiscordClient gatewayDiscordClient,
             CommandOptionAutocompleteListener commandOptionAutocompleteListener,
-            ApplicationContext applicationContext,
-            Environment environment
+            Environment environment,
+            CommandData commandData
     ) {
         this.gatewayDiscordClient = gatewayDiscordClient;
         this.commandOptionAutocompleteListener = commandOptionAutocompleteListener;
-        this.applicationContext = applicationContext;
         this.environment = environment;
+        this.commandData = commandData;
     }
 
     /**
@@ -85,14 +83,9 @@ public class SlashCommandRegistrar implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        var slashCommandMethods = applicationContext.getBeansWithAnnotation(DiscordEventsComponent.class).values().stream()
-                .map(Object::getClass)
-                .map(Class::getMethods)
-                .flatMap(Arrays::stream)
-                .filter(m -> m.isAnnotationPresent(SlashCommand.class))
-                .toList();
+        var slashCommands = commandData.getFromType(CommandType.Slash);
 
-        List<ActionResult<Void>> failedMethodVerifications = slashCommandMethods.stream()
+        List<ActionResult<Void>> failedMethodVerifications = slashCommands.stream()
                 .map(this::verifySlashCommandMethodSignature)
                 .filter(ActionResult::hasFailed)
                 .toList();
@@ -106,7 +99,7 @@ public class SlashCommandRegistrar implements ApplicationRunner {
             throw new RuntimeException(errorMsg + " Check the error logs for more detail on what went wrong.");
         }
 
-        var slashCommandRequests = createCommandRequestsFromMethods(slashCommandMethods);
+        var slashCommandRequests = createCommandRequestsFromCommandData(slashCommands);
 
         String updateCommands = Optional.ofNullable(environment.getProperty("mad4j.slashcommands.update")).orElse("true");
         if (updateCommands.equalsIgnoreCase("false")) {
@@ -132,13 +125,13 @@ public class SlashCommandRegistrar implements ApplicationRunner {
      * of the commands a tree is created to group commands that have the same first
      * names.
      *
-     * @param methods List of methods annotated with {@link SlashCommand}.
+     * @param commandEntries List of methods annotated with {@link SlashCommand}.
      * @return A list of application command requests. Every request is about a
      *     different command.
      */
-    private List<ApplicationCommandRequest> createCommandRequestsFromMethods(List<Method> methods) {
+    private List<ApplicationCommandRequest> createCommandRequestsFromCommandData(List<CommandData.Entry> commandEntries) {
 
-        List<CommandTreeNode> trees = createCommandNameTrees(methods);
+        List<CommandTreeNode> trees = createCommandNameTrees(commandEntries);
 
         return trees.stream()
                 .map(this::processSlashCommandTree)
@@ -151,18 +144,15 @@ public class SlashCommandRegistrar implements ApplicationRunner {
      * slash commands are space-separated strings, each being a different
      * level of nesting in the final command.
      *
-     * @param methods The methods of the commands, each annotated with
+     * @param commandEntries The methods of the commands, each annotated with
      *     {@link SlashCommand}.
      * @return A list of command tree nodes, where each node has a different
      *     first command name.
      */
-    private List<CommandTreeNode> createCommandNameTrees(List<Method> methods) {
+    private List<CommandTreeNode> createCommandNameTrees(List<CommandData.Entry> commandEntries) {
         CommandTreeNode shadowRoot = new CommandTreeNode("", new ArrayList<>(), null);
-        for (var method : methods) {
-            SlashCommand scAnnotation = method.getAnnotation(SlashCommand.class);
-            if (scAnnotation == null) continue;
-
-            String commandName = scAnnotation.name().toLowerCase();
+        for (var entry : commandEntries) {
+            String commandName = entry.getName();
             String[] parts = commandName.split(" ");
             if (parts.length == 0) continue;
 
@@ -173,11 +163,11 @@ public class SlashCommandRegistrar implements ApplicationRunner {
                     currentNode.children.add(new CommandTreeNode(partName, new ArrayList<>(), null));
                 }
                 else if (i == parts.length - 1) {
-                    throw new RuntimeException("The command \"" + scAnnotation.name().toLowerCase() + "\" has been declared multiple times!");
+                    throw new RuntimeException("The command \"" + entry.getName() + "\" has been declared multiple times!");
                 }
                 currentNode = currentNode.children.stream().filter(x -> x.name.equals(partName)).findFirst().get();
             }
-            currentNode.method = method;
+            currentNode.commandData = entry;
         }
 
         return shadowRoot.children;
@@ -198,9 +188,9 @@ public class SlashCommandRegistrar implements ApplicationRunner {
          */
         public List<CommandTreeNode> children;
         /**
-         * The method that would execute the slash command, if this is a leaf.
+         * The command data of the slash command, if this is a leaf.
          */
-        public Method method;
+        public CommandData.Entry commandData;
     }
 
     /**
@@ -213,13 +203,9 @@ public class SlashCommandRegistrar implements ApplicationRunner {
     private ApplicationCommandRequest processSlashCommandTree(CommandTreeNode tree) {
         var requestBuilder = ApplicationCommandRequest.builder();
         requestBuilder.name(tree.name);
-        if (tree.method != null) {
-            var annotation = tree.method.getAnnotation(SlashCommand.class);
-            if (annotation == null) {
-                return null;
-            }
-            requestBuilder.description(annotation.description());
-            requestBuilder.addAllOptions(getOptionsFromMethod(tree.method));
+        if (tree.commandData != null) {
+            requestBuilder.description(tree.commandData.getDescription());
+            requestBuilder.addAllOptions(getOptionsFromMethod(tree.commandData));
             return requestBuilder.build();
         }
         requestBuilder.description("Description for " + tree.name);
@@ -238,14 +224,10 @@ public class SlashCommandRegistrar implements ApplicationRunner {
         // this is a method
         var acodBuilder = ApplicationCommandOptionData.builder();
         acodBuilder.name(node.name);
-        if (node.method != null) {
-            var annotation = node.method.getAnnotation(SlashCommand.class);
-            if (annotation == null) {
-                return ApplicationCommandOptionData.builder().build();
-            }
-            acodBuilder.description(annotation.description());
+        if (node.commandData != null) {
+            acodBuilder.description(node.commandData.getDescription());
             acodBuilder.type(OptionType.SUB_COMMAND);
-            acodBuilder.addAllOptions(getOptionsFromMethod(node.method));
+            acodBuilder.addAllOptions(getOptionsFromMethod(node.commandData));
             return acodBuilder.build();
         }
         acodBuilder.description("Description for " + node.name);
@@ -259,16 +241,16 @@ public class SlashCommandRegistrar implements ApplicationRunner {
      * {@link ApplicationCommandOptionData} objects for the slash command request. These
      * are the parameters of the slash command.
      *
-     * @param method Method to parse.
+     * @param commandData Method to parse.
      * @return A list of {@link ApplicationCommandOptionData} for the annotated methods.
      */
-    private List<ApplicationCommandOptionData> getOptionsFromMethod(Method method) {
+    private List<ApplicationCommandOptionData> getOptionsFromMethod(CommandData.Entry commandData) {
         List<ApplicationCommandOptionData> ret = new ArrayList<>();
-        var parameters = Arrays.stream(method.getParameters())
+        var parameters = Arrays.stream(commandData.getMethod().getParameters())
                 .filter(x -> x.isAnnotationPresent(CommandParam.class))
                 .toList();
 
-        String commandName = method.getAnnotation(SlashCommand.class).name().toLowerCase();
+        String commandName = commandData.getName();
 
         for (var parameter : parameters) {
             CommandParam paramAnnotation = parameter.getAnnotation(CommandParam.class);
@@ -350,16 +332,16 @@ public class SlashCommandRegistrar implements ApplicationRunner {
      * the name of the command annotation and the parameter annotations and them having correct
      * data types.</p>
      *
-     * @param method The method to verify.
+     * @param commandData The method to verify.
      * @return An action result that if correct is empty.
      */
-    private ActionResult<Void> verifySlashCommandMethodSignature(Method method) {
-        SlashCommand sca = method.getAnnotation(SlashCommand.class);
-        if (sca == null) return ActionResult.fail("The slash command with signature " + method + " did not have a @SlashCommand annotation!");
-        if (sca.name().split(" ").length > 3) return ActionResult.fail("The slash command name " + sca.name() + " has too many parts! Maximum 3.");
+    private ActionResult<Void> verifySlashCommandMethodSignature(CommandData.Entry commandData) {
+        if (commandData.getName().split(" ").length > 3) {
+            return ActionResult.fail("The slash command name " + commandData.getName() + " has too many parts! Maximum 3.");
+        }
 
-        for (Parameter par : method.getParameters()) {
-            String msgStart = "Parameter \"" + par + "\" of method \"" + method + "\" ";
+        for (Parameter par : commandData.getMethod().getParameters()) {
+            String msgStart = "Parameter \"" + par + "\" of method \"" + commandData.getMethod() + "\" ";
             List<Class<?>> presentAnnotations = new ArrayList<>();
             if (par.isAnnotationPresent(CommandParam.class)) {
                 presentAnnotations.add(CommandParam.class);
