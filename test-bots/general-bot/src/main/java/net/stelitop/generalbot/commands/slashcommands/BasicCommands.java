@@ -1,6 +1,7 @@
 package net.stelitop.generalbot.commands.slashcommands;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
+import discord4j.core.object.entity.User;
 import net.stelitop.generalbot.commandrequirements.UnusableCommand;
 import net.stelitop.mad4j.DiscordEventsComponent;
 import net.stelitop.mad4j.commands.InteractionEvent;
@@ -10,6 +11,7 @@ import net.stelitop.mad4j.commands.SlashCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
+import java.util.Locale;
 import java.util.Random;
 
 @DiscordEventsComponent
@@ -84,5 +86,18 @@ public class BasicCommands {
             ChatInputInteractionEvent event
     ) {
         return event.reply("Used! This is an error, the requirement is not working.");
+    }
+
+    @SlashCommand(
+            name = "basic userchannel",
+            description = "Tests the injection of user and channel parameters."
+    )
+    public Mono<Void> userchanneLCommand(
+            @InteractionEvent
+            ChatInputInteractionEvent event,
+            @CommandParam(name = "user", description = "User")
+            User user
+    ) {
+        return event.reply("User = " + user.getTag());
     }
 }

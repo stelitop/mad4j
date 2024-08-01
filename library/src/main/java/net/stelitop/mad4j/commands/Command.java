@@ -1,7 +1,5 @@
 package net.stelitop.mad4j.commands;
 
-import net.stelitop.mad4j.CommandScope;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -28,10 +26,5 @@ public @interface Command {
      * in the properties file.
      */
     // TODO: Replace these with enum types
-    CommandType[] types();
-
-    /**
-     * The scopes in which the command can be used in. Guild, private
-     */
-    CommandScope[] scopes();
+    CommandType[] types() default {};
 }

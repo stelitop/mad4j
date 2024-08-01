@@ -3,7 +3,6 @@ package net.stelitop.mad4j.commands;
 import discord4j.core.GatewayDiscordClient;
 import lombok.Builder;
 import lombok.Getter;
-import net.stelitop.mad4j.CommandScope;
 import net.stelitop.mad4j.DiscordEventsComponent;
 import net.stelitop.mad4j.listeners.CommandOptionAutocompleteListener;
 import org.jetbrains.annotations.Nullable;
@@ -13,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
@@ -21,6 +21,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
+@Order(0)
 public class CommandData implements ApplicationRunner {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
@@ -31,13 +32,14 @@ public class CommandData implements ApplicationRunner {
     private final Environment environment;
     private final List<Entry> commandsInfo = new ArrayList<>();
 
+    private static final Set<CommandType> DEFAULT_COMMAND_TYPES = Set.of(CommandType.Slash);
+
     @Builder
     @Getter
     public static class Entry {
         private String name;
         private String description;
         private Set<CommandType> types;
-        private Set<CommandScope> scopes;
         private Object bean;
         private Method method;
     }
@@ -76,8 +78,7 @@ public class CommandData implements ApplicationRunner {
             return Entry.builder()
                     .name(c.name().toLowerCase())
                     .description(c.description())
-                    .scopes(Arrays.stream(c.scopes()).collect(Collectors.toSet()))
-                    .types(Arrays.stream(c.types()).collect(Collectors.toSet()))
+                    .types(getCommandTypes(c.types()))
                     .bean(bean)
                     .method(method)
                     .build();
@@ -86,13 +87,17 @@ public class CommandData implements ApplicationRunner {
             return Entry.builder()
                     .name(sc.name().toLowerCase())
                     .description(sc.description())
-                    .scopes(Set.of(CommandScope.Private, CommandScope.Guild))
                     .types(Set.of(CommandType.Slash))
                     .bean(bean)
                     .method(method)
                     .build();
         }
         return null;
+    }
+
+    private Set<CommandType> getCommandTypes(CommandType[] types) {
+        if (types.length == 0) return DEFAULT_COMMAND_TYPES;
+        else return Arrays.stream(types).collect(Collectors.toSet());
     }
 
     public @Nullable Entry get(String commandName, CommandType type) {
