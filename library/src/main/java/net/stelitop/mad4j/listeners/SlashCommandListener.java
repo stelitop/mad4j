@@ -96,7 +96,7 @@ public class SlashCommandListener implements ApplicationRunner {
      * @param event The event that occurs.
      * @return The mono emitted from the event.
      */
-    private Mono<Void> handle(ChatInputInteractionEvent event) {
+    public Mono<Void> handle(ChatInputInteractionEvent event) {
         StringBuilder commandNameBuilder = new StringBuilder(event.getCommandName().toLowerCase());
         List<ApplicationCommandInteractionOption> options = event.getOptions();
         while (options.size() == 1
@@ -137,6 +137,7 @@ public class SlashCommandListener implements ApplicationRunner {
                 .map(p -> mapCommandParamToMethodParam(event, options, p))
                 .toList();
         try {
+            System.out.println(invocationParams);
             Object result = command.getMethod().invoke(command.getBean(), invocationParams.toArray());
             if (result instanceof EventResponse er) {
                 return er.respond(event);

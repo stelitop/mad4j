@@ -11,7 +11,6 @@ import net.stelitop.mad4j.commands.SlashCommand;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
-import java.util.Locale;
 import java.util.Random;
 
 @DiscordEventsComponent

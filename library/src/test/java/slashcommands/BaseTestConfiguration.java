@@ -1,5 +1,6 @@
-package slashcommands.registering;
+package slashcommands;
 
+import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;
 import discord4j.rest.RestClient;
 import discord4j.rest.service.ApplicationService;
@@ -21,19 +22,20 @@ public class BaseTestConfiguration {
     public static long TEST_APPLICATION_ID = 1L;
 
     @Bean
-    public GatewayDiscordClient gatewayDiscordClient(RestClient restClientMock) {
+    public GatewayDiscordClient gatewayDiscordClient(DiscordClient clientMock) {
         GatewayDiscordClient gatewayDiscordClientMock = mock(GatewayDiscordClient.class);
-        when(gatewayDiscordClientMock.getRestClient()).thenReturn(restClientMock);
+        when(gatewayDiscordClientMock.getRestClient()).thenReturn(clientMock);
+        when(gatewayDiscordClientMock.rest()).thenReturn(clientMock);
         when(gatewayDiscordClientMock.on(any(), any())).thenReturn(Flux.empty());
         return gatewayDiscordClientMock;
     }
 
     @Bean
-    public RestClient restClient(ApplicationService applicationServiceMock) {
-        RestClient restClientMock = mock(RestClient.class);
-        when(restClientMock.getApplicationId()).thenReturn(Mono.just(TEST_APPLICATION_ID));
-        when(restClientMock.getApplicationService()).thenReturn(applicationServiceMock);
-        return restClientMock;
+    public DiscordClient client(ApplicationService applicationServiceMock) {
+        DiscordClient clientMock = mock(DiscordClient.class);
+        when(clientMock.getApplicationId()).thenReturn(Mono.just(TEST_APPLICATION_ID));
+        when(clientMock.getApplicationService()).thenReturn(applicationServiceMock);
+        return clientMock;
     }
 
     @Bean

@@ -17,6 +17,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactor.core.publisher.Mono;
+import slashcommands.BaseTestConfiguration;
 
 import java.util.List;
 
