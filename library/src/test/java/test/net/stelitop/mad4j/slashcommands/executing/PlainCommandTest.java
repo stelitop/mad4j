@@ -1,4 +1,4 @@
-package slashcommands.executing;
+package test.net.stelitop.mad4j.slashcommands.executing;
 
 
 import discord4j.core.GatewayDiscordClient;
@@ -13,19 +13,15 @@ import net.stelitop.mad4j.commands.CommandParam;
 import net.stelitop.mad4j.commands.InteractionEvent;
 import net.stelitop.mad4j.commands.SlashCommand;
 import net.stelitop.mad4j.listeners.SlashCommandListener;
+import test.net.stelitop.mad4j.slashcommands.BaseTestConfiguration;
 import net.stelitop.mad4j.utils.OptionType;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactor.core.publisher.Mono;
-import slashcommands.BaseTestConfiguration;
-
-import java.util.List;
 
 import static org.mockito.Mockito.*;
 

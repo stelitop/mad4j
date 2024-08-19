@@ -1,4 +1,4 @@
-package slashcommands;
+package test.net.stelitop.mad4j.slashcommands;
 
 import discord4j.core.DiscordClient;
 import discord4j.core.GatewayDiscordClient;

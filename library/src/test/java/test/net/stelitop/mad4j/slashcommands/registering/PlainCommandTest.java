@@ -1,4 +1,4 @@
-package slashcommands.registering;
+package test.net.stelitop.mad4j.slashcommands.registering;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.discordjson.json.ApplicationCommandOptionData;
@@ -8,6 +8,7 @@ import net.stelitop.mad4j.DiscordEventsComponent;
 import net.stelitop.mad4j.commands.InteractionEvent;
 import net.stelitop.mad4j.commands.CommandParam;
 import net.stelitop.mad4j.commands.SlashCommand;
+import test.net.stelitop.mad4j.slashcommands.BaseTestConfiguration;
 import net.stelitop.mad4j.utils.OptionType;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
@@ -17,7 +18,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 import reactor.core.publisher.Mono;
-import slashcommands.BaseTestConfiguration;
 
 import java.util.List;
 
