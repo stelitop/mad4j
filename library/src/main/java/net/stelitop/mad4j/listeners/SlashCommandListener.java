@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import net.stelitop.mad4j.commands.*;
 import net.stelitop.mad4j.commands.requirements.CommandRequirementExecutor;
+import net.stelitop.mad4j.events.AllowedEventResultHandler;
 import net.stelitop.mad4j.interactions.EventResponse;
 import net.stelitop.mad4j.utils.ActionResult;
 import net.stelitop.mad4j.DiscordEventsComponent;
@@ -52,6 +53,7 @@ public class SlashCommandListener implements ApplicationRunner {
     private final ApplicationContext applicationContext;
     private final GatewayDiscordClient client;
     private final CommandData commandData;
+    private final AllowedEventResultHandler allowedEventResultHandler;
 
     private final Map<Class<? extends CommandRequirementExecutor>, CommandRequirementExecutor> possibleRequirements;
 
@@ -60,11 +62,13 @@ public class SlashCommandListener implements ApplicationRunner {
             ApplicationContext applicationContext,
             GatewayDiscordClient client,
             CommandData commandData,
+            AllowedEventResultHandler allowedEventResultHandler,
             List<CommandRequirementExecutor> possibleRequirements
     ) {
         this.applicationContext = applicationContext;
         this.client = client;
         this.commandData = commandData;
+        this.allowedEventResultHandler = allowedEventResultHandler;
         this.possibleRequirements = possibleRequirements.stream()
                 .collect(Collectors.toMap(CommandRequirementExecutor::getClass, x -> x));
     }
@@ -136,21 +140,30 @@ public class SlashCommandListener implements ApplicationRunner {
         List<Object> invocationParams = Arrays.stream(parameters)
                 .map(p -> mapCommandParamToMethodParam(event, options, p))
                 .toList();
+
+
         try {
-            System.out.println(invocationParams);
             Object result = command.getMethod().invoke(command.getBean(), invocationParams.toArray());
-            if (result instanceof EventResponse er) {
-                return er.respond(event);
+            var eventResponse = allowedEventResultHandler.handleEventResult(result, event);
+            if (eventResponse.isSuccessful()) {
+                return eventResponse.getResponse();
+            } else {
+                // TODO: Handle with an exception
+                return event.reply("An error occurred invoking this slash command!")
+                        .withEphemeral(true);
             }
-            else if (Mono.class.isAssignableFrom(result.getClass())) {
-                return ((Mono<?>) result).cast(Void.class);
-            }
-            else throw new ClassCastException();
+//            if (result instanceof EventResponse er) {
+//                return er.respond(event);
+//            }
+//            else if (Mono.class.isAssignableFrom(result.getClass())) {
+//                return ((Mono<?>) result).cast(Void.class);
+//            }
+//            else throw new ClassCastException();
 
         } catch (IllegalAccessException | InvocationTargetException e) {
             LOGGER.error(command.getName() + " had a problem during invoking.");
             e.printStackTrace();
-            return event.reply("An error occurred invoking the slash command!")
+            return event.reply("An error occurred invoking this slash command!")
                     .withEphemeral(true);
         } catch (ClassCastException e) {
             LOGGER.error(command.getName() + "'s result could not be cast to any acceptable type. Check method signature.");

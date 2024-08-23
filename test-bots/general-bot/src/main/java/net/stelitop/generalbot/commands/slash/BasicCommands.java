@@ -99,4 +99,12 @@ public class BasicCommands {
     ) {
         return event.reply("User = " + user.getTag());
     }
+
+    @SlashCommand(
+            name = "basic stringresponse",
+            description = "Responses by returning a string."
+    )
+    public String stringResponse() {
+        return "This was returned as a string!";
+    }
 }
