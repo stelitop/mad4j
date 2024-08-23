@@ -1,4 +1,4 @@
-package net.stelitop.generalbot.commands.slashcommands;
+package net.stelitop.generalbot.commands.slash;
 
 import discord4j.core.event.domain.interaction.ButtonInteractionEvent;
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
