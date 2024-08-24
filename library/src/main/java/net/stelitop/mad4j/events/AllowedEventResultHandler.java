@@ -27,7 +27,8 @@ public class AllowedEventResultHandler {
 
     private AllowedEventResult getMatchingResult(Object result, Event event) {
         for (var response : responses) {
-            if (response.resultType().isAssignableFrom(result.getClass()) && response.eventType().isAssignableFrom(event.getClass())) {
+            if (response.resultTypes().stream().anyMatch(r -> r.isAssignableFrom(result.getClass()))
+                    && response.eventTypes().stream().anyMatch(e -> e.isAssignableFrom(event.getClass()))) {
                 return response;
             }
         }

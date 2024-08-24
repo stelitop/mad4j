@@ -2,6 +2,8 @@ package net.stelitop.generalbot.commands.slash;
 
 import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import discord4j.core.object.entity.User;
+import discord4j.core.spec.EmbedCreateSpec;
+import discord4j.rest.util.Color;
 import net.stelitop.generalbot.commandrequirements.UnusableCommand;
 import net.stelitop.mad4j.DiscordEventsComponent;
 import net.stelitop.mad4j.commands.InteractionEvent;
@@ -106,5 +108,17 @@ public class BasicCommands {
     )
     public String stringResponse() {
         return "This was returned as a string!";
+    }
+
+    @SlashCommand(
+            name = "basic embedresponse",
+            description = "Responses by returning a string."
+    )
+    public EmbedCreateSpec embedResponse() {
+        return EmbedCreateSpec.builder()
+                .title("Embed Title")
+                .description("Embed Description")
+                .color(Color.BLUE)
+                .build();
     }
 }

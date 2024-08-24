@@ -5,16 +5,18 @@ import discord4j.core.event.domain.interaction.ChatInputInteractionEvent;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 public class SlashCommandMonoVoidEventResult implements AllowedEventResult {
     @Override
-    public Class<?> resultType() {
-        return Mono.class;
+    public List<Class<?>> resultTypes() {
+        return List.of(Mono.class);
     }
 
     @Override
-    public Class<? extends Event> eventType() {
-        return ChatInputInteractionEvent.class;
+    public List<Class<? extends Event>> eventTypes() {
+        return List.of(ChatInputInteractionEvent.class);
     }
 
     @Override

@@ -3,6 +3,8 @@ package net.stelitop.mad4j.events;
 import discord4j.core.event.domain.Event;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * Takes care of different types of allowed responses for different types of events.
  */
@@ -17,8 +19,8 @@ public interface AllowedEventResult {
 //    default boolean verify(Object object) {
 //
 //    }
-    Class<?> resultType();
-    Class<? extends Event> eventType();
+    List<Class<?>> resultTypes();
+    List<Class<? extends Event>> eventTypes();
 
     Mono<Void> transform(Object result, Event event);
 }

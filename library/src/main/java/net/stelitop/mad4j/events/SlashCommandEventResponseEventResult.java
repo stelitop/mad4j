@@ -6,16 +6,18 @@ import net.stelitop.mad4j.interactions.EventResponse;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Component
 public class SlashCommandEventResponseEventResult implements AllowedEventResult {
     @Override
-    public Class<?> resultType() {
-        return EventResponse.class;
+    public List<Class<?>> resultTypes() {
+        return List.of(EventResponse.class);
     }
 
     @Override
-    public Class<? extends Event> eventType() {
-        return ChatInputInteractionEvent.class;
+    public List<Class<? extends Event>> eventTypes() {
+        return List.of(ChatInputInteractionEvent.class);
     }
 
     @Override
