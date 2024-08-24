@@ -40,6 +40,8 @@ public class AllowedEventResultHandler {
             for (int j = i + 1; j < responses.size(); j++) {
                 var x = responses.get(i);
                 var y = responses.get(j);
+
+
                 // actually implement allowing multiple things
             }
         }
