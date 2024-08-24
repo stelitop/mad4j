@@ -10,6 +10,8 @@ import net.stelitop.mad4j.commands.InteractionEvent;
 import net.stelitop.mad4j.commands.CommandParam;
 import net.stelitop.mad4j.commands.DefaultValue;
 import net.stelitop.mad4j.commands.SlashCommand;
+import net.stelitop.mad4j.commands.requirements.standard.DMCommandRequirement;
+import net.stelitop.mad4j.commands.requirements.standard.GuildCommandRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
@@ -120,5 +122,23 @@ public class BasicCommands {
                 .description("Embed Description")
                 .color(Color.BLUE)
                 .build();
+    }
+
+    @GuildCommandRequirement
+    @SlashCommand(
+            name = "basic guildonly",
+            description = "Only usable in guilds."
+    )
+    public String guildOnlyCommand() {
+        return "Hello guild!";
+    }
+
+    @DMCommandRequirement
+    @SlashCommand(
+            name = "basic dmonly",
+            description = "Only usable in guilds."
+    )
+    public String dmOnlyCommand() {
+        return "Hello dms!";
     }
 }
