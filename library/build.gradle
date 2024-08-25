@@ -40,7 +40,7 @@ dependencies {
 	testImplementation 'org.mockito:mockito-core:5.4.0'
 }
 
-//publishing {
+publishing {
 //	repositories {
 //		maven {
 //			name = "mad4j"
@@ -51,12 +51,12 @@ dependencies {
 //			}
 //		}
 //	}
-//	publications {
-//		gpr(MavenPublication) {
-//			from(components.java)
-//		}
-//	}
-//}
+	publications {
+		gpr(MavenPublication) {
+			from(components.java)
+		}
+	}
+}
 
 tasks.named('test') {
 	useJUnitPlatform()
