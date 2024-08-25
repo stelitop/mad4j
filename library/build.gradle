@@ -6,7 +6,7 @@ plugins {
 	id 'maven-publish'
 }
 
-group = 'net.stelitop'
+group = 'io.github.stelitop'
 version = '0.0.5'
 
 java {
@@ -40,29 +40,29 @@ dependencies {
 	testImplementation 'org.mockito:mockito-core:5.4.0'
 }
 
-publishing {
-	repositories {
-		maven {
-			name = "mad4j"
-			url = uri("https://maven.pkg.github.com/stelitop/mad4j")
-			credentials {
-				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-			}
-		}
-	}
-	publications {
-		gpr(MavenPublication) {
-			from(components.java)
-		}
-	}
-}
+//publishing {
+//	repositories {
+//		maven {
+//			name = "mad4j"
+//			url = uri("https://maven.pkg.github.com/stelitop/mad4j")
+//			credentials {
+//				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+//				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+//			}
+//		}
+//	}
+//	publications {
+//		gpr(MavenPublication) {
+//			from(components.java)
+//		}
+//	}
+//}
 
 tasks.named('test') {
 	useJUnitPlatform()
 	jacoco {
 		enabled = true
-		includes = ['net.stelitop.mad4j.*']
+		includes = ['io.github.stelitop.mad4j.*']
 		excludes = []
 	}
 }
@@ -73,7 +73,7 @@ jacocoTestCoverageVerification() {
 		rule {
 			enabled = true
 			element = 'CLASS'
-			includes = ['net.stelitop.madj4.*']
+			includes = ['io.github.stelitop.madj4.*']
 
 			limit {
 				counter = 'BRANCH'

@@ -25,7 +25,7 @@ Since the library is based on Java Spring, it contains components that have to b
 - The first is to import the Mad4jConfig into a custom configuration component. This is the recommended way, as this way you have
   more control over the library. It is also easier to disable when testing needs to be done on other parts of the bot, such as testing JPA repositories.
   ```java
-  import net.stelitop.mad4j.Mad4jConfig;
+  import io.github.stelitop.mad4j.Mad4jConfig;
   import org.springframework.context.annotation.Configuration;
   import org.springframework.context.annotation.Import;
 
@@ -38,7 +38,7 @@ Since the library is based on Java Spring, it contains components that have to b
 - The second way is to directly import the Mad4jConfig to the main class of the Spring application. This is a bit simpler, but it might be problematic
   in bigger applications.
   ```java
-  import net.stelitop.mad4j.Mad4jConfig;
+  import io.github.stelitop.mad4j.Mad4jConfig;
   import org.springframework.boot.SpringApplication;
   import org.springframework.boot.autoconfigure.SpringBootApplication;
   import org.springframework.context.annotation.Import;
