@@ -6,18 +6,16 @@ import discord4j.core.object.command.ApplicationCommandInteractionOption;
 import discord4j.core.object.command.ApplicationCommandInteractionOptionValue;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import net.stelitop.mad4j.commands.DefaultValue;
-import net.stelitop.mad4j.requirements.CommandRequirementExecutor;
+import net.stelitop.mad4j.commands.*;
+import net.stelitop.mad4j.commands.requirements.CommandRequirementExecutor;
+import net.stelitop.mad4j.events.AllowedEventResultHandler;
+import net.stelitop.mad4j.interactions.EventResponse;
 import net.stelitop.mad4j.utils.ActionResult;
 import net.stelitop.mad4j.DiscordEventsComponent;
-import net.stelitop.mad4j.commands.CommandParam;
-import net.stelitop.mad4j.InteractionEvent;
-import net.stelitop.mad4j.commands.SlashCommand;
-import net.stelitop.mad4j.convenience.EventUser;
-import net.stelitop.mad4j.convenience.EventUserId;
+import net.stelitop.mad4j.commands.convenience.EventUser;
+import net.stelitop.mad4j.commands.convenience.EventUserId;
 import net.stelitop.mad4j.utils.OptionType;
-import net.stelitop.mad4j.requirements.CommandRequirement;
+import net.stelitop.mad4j.commands.requirements.CommandRequirement;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +28,6 @@ import reactor.core.publisher.Mono;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,18 +52,23 @@ public class SlashCommandListener implements ApplicationRunner {
     // dependencies
     private final ApplicationContext applicationContext;
     private final GatewayDiscordClient client;
+    private final CommandData commandData;
+    private final AllowedEventResultHandler allowedEventResultHandler;
 
     private final Map<Class<? extends CommandRequirementExecutor>, CommandRequirementExecutor> possibleRequirements;
-    private List<SlashCommandEntry> slashCommands;
 
     @Autowired
     public SlashCommandListener(
             ApplicationContext applicationContext,
             GatewayDiscordClient client,
+            CommandData commandData,
+            AllowedEventResultHandler allowedEventResultHandler,
             List<CommandRequirementExecutor> possibleRequirements
     ) {
         this.applicationContext = applicationContext;
         this.client = client;
+        this.commandData = commandData;
+        this.allowedEventResultHandler = allowedEventResultHandler;
         this.possibleRequirements = possibleRequirements.stream()
                 .collect(Collectors.toMap(CommandRequirementExecutor::getClass, x -> x));
     }
@@ -81,36 +83,10 @@ public class SlashCommandListener implements ApplicationRunner {
     @Override
     public void run(ApplicationArguments args) {
 
-        Collection<Object> commandBeans = applicationContext.getBeansWithAnnotation(DiscordEventsComponent.class).values();
-
-        slashCommands = new ArrayList<>();
-        for (var bean : commandBeans) {
-            var slashCommandMethods = Arrays.stream(bean.getClass().getMethods())
-                    .filter(x -> x.isAnnotationPresent(SlashCommand.class))
-                    .toList();
-
-            for (var method : slashCommandMethods) {
-                var newEntry = new SlashCommandEntry();
-                SlashCommand slashCommandAnnotation = method.getAnnotation(SlashCommand.class);
-                newEntry.method = method;
-                newEntry.name = slashCommandAnnotation.name().toLowerCase();
-                newEntry.sourceBean = bean;
-                slashCommands.add(newEntry);
-            }
-        }
-
+        Collection<Object> commandBeans = applicationContext
+                .getBeansWithAnnotation(DiscordEventsComponent.class)
+                .values();
         client.on(ChatInputInteractionEvent.class, this::handle).subscribe();
-    }
-
-    /**
-     * Data class for the basic data required to invoke a slash command and analyse it.
-     */
-    @NoArgsConstructor
-    @AllArgsConstructor
-    private static class SlashCommandEntry {
-        private Object sourceBean;
-        private Method method;
-        private String name;
     }
 
     /**
@@ -124,7 +100,7 @@ public class SlashCommandListener implements ApplicationRunner {
      * @param event The event that occurs.
      * @return The mono emitted from the event.
      */
-    private Mono<Void> handle(ChatInputInteractionEvent event) {
+    public Mono<Void> handle(ChatInputInteractionEvent event) {
         StringBuilder commandNameBuilder = new StringBuilder(event.getCommandName().toLowerCase());
         List<ApplicationCommandInteractionOption> options = event.getOptions();
         while (options.size() == 1
@@ -139,44 +115,58 @@ public class SlashCommandListener implements ApplicationRunner {
         Map<String, ApplicationCommandInteractionOption> optionsMap = options.stream()
                 .collect(Collectors.toMap(x -> x.getName().toLowerCase(), x -> x));
 
-        Optional<SlashCommandEntry> command = this.slashCommands.stream()
-                .filter(x -> x.name.equalsIgnoreCase(commandName))
-                .findFirst();
+        CommandData.Entry command = commandData.get(commandName, CommandType.Slash);
 
-        if (command.isEmpty()) {
+        if (command == null) {
             return event.reply("Could not resolve command '" + commandName + "'.")
                     .withEphemeral(true);
         }
-        return invokeSlashCommand(event, optionsMap, command.get());
+        return invokeSlashCommand(event, optionsMap, command);
     }
 
     private Mono<Void> invokeSlashCommand(
             ChatInputInteractionEvent event,
             Map<String, ApplicationCommandInteractionOption> options,
-            SlashCommandEntry command
+            CommandData.Entry command
     ) {
 
-        ActionResult<Void> conditionsResult = verifyCommandConditions(event, command);
+        ActionResult<Void> conditionsResult = verifyCommandRequirements(event, command);
         if (conditionsResult.hasFailed()) {
             return event.reply(conditionsResult.errorMessage())
                     .withEphemeral(true);
         }
 
-        Parameter[] parameters = command.method.getParameters();
+        Parameter[] parameters = command.getMethod().getParameters();
         List<Object> invocationParams = Arrays.stream(parameters)
                 .map(p -> mapCommandParamToMethodParam(event, options, p))
                 .toList();
 
+
         try {
-            Object result = command.method.invoke(command.sourceBean, invocationParams.toArray());
-            return (Mono<Void>) result;
+            Object result = command.getMethod().invoke(command.getBean(), invocationParams.toArray());
+            var eventResponse = allowedEventResultHandler.handleEventResult(result, event);
+            if (eventResponse.isSuccessful()) {
+                return eventResponse.getResponse();
+            } else {
+                // TODO: Handle with an exception
+                return event.reply("An error occurred invoking this slash command!")
+                        .withEphemeral(true);
+            }
+//            if (result instanceof EventResponse er) {
+//                return er.respond(event);
+//            }
+//            else if (Mono.class.isAssignableFrom(result.getClass())) {
+//                return ((Mono<?>) result).cast(Void.class);
+//            }
+//            else throw new ClassCastException();
+
         } catch (IllegalAccessException | InvocationTargetException e) {
-            LOGGER.error(command.name + " had a problem during invoking.");
+            LOGGER.error(command.getName() + " had a problem during invoking.");
             e.printStackTrace();
-            return event.reply("An error occurred invoking the slash command!")
+            return event.reply("An error occurred invoking this slash command!")
                     .withEphemeral(true);
         } catch (ClassCastException e) {
-            LOGGER.error(command.name + "'s result could not be cast to Mono<Void>. Check method signature.");
+            LOGGER.error(command.getName() + "'s result could not be cast to any acceptable type. Check method signature.");
             e.printStackTrace();
             return event.reply("Could not cast result of slash command.")
                     .withEphemeral(true);
@@ -263,18 +253,21 @@ public class SlashCommandListener implements ApplicationRunner {
     }
 
     /**
-     * Checks
-     * @param event
-     * @param command
-     * @return
+     * Checks that all attached command requirements have been fulfilled. If any of them are not,
+     * the first that fails returns their error message.
+     *
+     * @param event The even that triggered the slash command.
+     * @param command The data about the command.
+     * @return An action result that succeeds if the condition is fulfilled or fails with an error
+     *     message otherwise.
      */
-    private ActionResult<Void> verifyCommandConditions(ChatInputInteractionEvent event, SlashCommandEntry command) {
-        List<CommandRequirement> conditionAnnotations = Arrays.stream(command.method.getAnnotations())
+    private ActionResult<Void> verifyCommandRequirements(ChatInputInteractionEvent event, CommandData.Entry command) {
+        List<CommandRequirement> requirementAnnotations = Arrays.stream(command.getMethod().getAnnotations())
                 .map(a -> a.annotationType().getAnnotation(CommandRequirement.class))
                 .filter(Objects::nonNull)
                 .toList();
 
-        for (var annotation : conditionAnnotations) {
+        for (var annotation : requirementAnnotations) {
             CommandRequirementExecutor conditionBean = possibleRequirements.get(annotation.implementation());
             if (conditionBean == null) continue;
             ActionResult<Void> result = conditionBean.verify(event);

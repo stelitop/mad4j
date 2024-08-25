@@ -1,4 +1,4 @@
-package net.stelitop.generalbot.commandrequirements;
+package net.stelitop.mad4j.commands.requirements.standard;
 
 import net.stelitop.mad4j.commands.requirements.CommandRequirement;
 
@@ -7,8 +7,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@CommandRequirement(implementation = UnusableCommandImplementation.class)
-@Target(ElementType.METHOD)
+
 @Retention(RetentionPolicy.RUNTIME)
-public @interface UnusableCommand {
+@Target(ElementType.METHOD)
+@CommandRequirement(implementation = DMCommandRequirementImplementation.class)
+public @interface DMCommandRequirement {
 }
