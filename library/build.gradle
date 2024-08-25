@@ -41,16 +41,16 @@ dependencies {
 }
 
 publishing {
-//	repositories {
-//		maven {
-//			name = "mad4j"
-//			url = uri("https://maven.pkg.github.com/stelitop/mad4j")
-//			credentials {
-//				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-//				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-//			}
-//		}
-//	}
+	repositories {
+		maven {
+			name = "mad4j"
+			url = uri("https://maven.pkg.github.com/stelitop/mad4j")
+			credentials {
+				username = System.getenv("GITHUB_ACTOR")
+				password = System.getenv("GITHUB_TOKEN")
+			}
+		}
+	}
 	publications {
 		gpr(MavenPublication) {
 			from(components.java)
