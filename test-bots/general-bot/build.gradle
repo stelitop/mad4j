@@ -20,7 +20,7 @@ repositories {
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'com.discord4j:discord4j-core:3.2.6'
-	implementation project(":library")
+	implementation project(":mad4j")
 	//implementation 'io.github.stelitop:mad4j:0.0.6-SNAPSHOT'
 
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

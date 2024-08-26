@@ -1,5 +1,5 @@
 rootProject.name = 'mad4j'
-include 'library'
+include 'mad4j'
 
 include 'general-bot'
 project(':general-bot').projectDir = file('test-bots/general-bot')
